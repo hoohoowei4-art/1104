@@ -163,11 +163,11 @@
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1">甜度</label>
                 <select id="drink-sweetness" onchange="updateDrinkPreferences()" class="w-full text-xs rounded-lg px-2 py-1.5 border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-red-500">
-                  <option value="0分糖">0分糖</option>
-                  <option value="3分糖" selected>3分糖</option>
-                  <option value="5分糖">5分糖</option>
-                  <option value="8分糖">8分糖</option>
-                  <option value="正常">正常</option>
+                  <option value="正常糖">正常糖</option>
+                  <option value="少糖">少糖</option>
+                  <option value="半糖">半糖</option>
+                  <option value="微糖" selected>微糖</option>
+                  <option value="無糖">無糖</option>
                 </select>
               </div>
               <div>
@@ -345,7 +345,7 @@
     ];
 
     const MAX_BUDGET = 150;
-    let selectedCategory = '全部';
+    let selectedCategory = 'default';
 
     let currentSelection = {
       pie1: null,
@@ -556,6 +556,7 @@
       document.getElementById('pie-count-badge').innerText = `已選 ${pieCount}/2`;
       document.getElementById('drink-count-badge').innerText = `已選 ${currentSelection.drink ? 1 : 0}/1`;
 
+      // Show/Hide Sweetness & Ice Panel
       const customOptionsPanel = document.getElementById('drink-custom-options');
       if (currentSelection.drink) {
         customOptionsPanel.classList.remove('hidden');
