@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>車輪餅 & 麻古茶坊 團購點餐系統 (上限 $150)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#e60012',
+              redHover: '#cc0010',
+              amber: '#f59e0b',
+              gold: '#d97706',
+            }
+          },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #f8fafc;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 antialiased flex flex-col justify-between">
+
+  <!-- Header Section -->
+  <header class="bg-gradient-to-r from-red-600 via-red-500 to-amber-500 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm flex items-center justify-center">
+          <i class="fa-solid fa-mug-hot text-xl text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight leading-tight">用蛋糕做的紅豆餅 × 麻古茶坊</h1>
+          <p class="text-xs text-red-100">午茶點餐限額：每人最高 NT$ 150</p>
+        </div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium border border-white/20">
+        每人限購：餅 2 個 + 飲料 1 杯
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto px-4 py-5 w-full flex-grow space-y-6">
+
+    <!-- Budget & Summary Header -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100 relative overflow-hidden">
+      <div class="flex justify-between items-end mb-2">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">當前個人小計</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span class="text-3xl font-extrabold text-slate-800" id="total-price-display">NT$ 0</span>
+            <span class="text-xs text-slate-400">/ 上限 NT$ 150</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-slate-400">剩餘可用額度</span>
+          <div id="remaining-budget" class="text-lg font-bold text-emerald-600">NT$ 150</div>
+        </div>
+      </div>
+
+      <!-- Budget Progress Bar -->
+      <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+        <div id="budget-progress-bar" class="bg-gradient-to-r from-amber-400 to-red-500 h-full rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+      </div>
+
+      <!-- Warning Alert Banner -->
+      <div id="budget-warning" class="hidden mt-3 p-2.5 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-600 text-xs font-medium">
+        <i class="fa-solid fa-circle-exclamation text-base"></i>
+        <span>目前選擇金額超出 NT$ 150 限制，請調整您的點餐項目！</span>
+      </div>
+    </div>
+
+    <!-- Selection Cards Area -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Wheel Pies Section (紅豆餅) -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-amber-100 text-amber-800 w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm">1</span>
+              <h2 class="font-bold text-slate-800">選擇紅豆餅 (選 2 個)</h2>
+            </div>
+            <span id="pie-count-badge" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">已選 0/2</span>
+          </div>
+
+          <!-- Pie 1 Selection -->
+          <div class="mb-4">
+            <label class="block text-xs font-bold text-slate-500 mb-2 flex items-center gap-1">
+              <i class="fa-solid fa-cookie text-amber-500"></i> 第一顆紅豆餅
+            </label>
+            <div id="pie1-options" class="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+              <!-- Dynamic Options -->
+            </div>
+          </div>
+
+          <!-- Pie 2 Selection -->
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 flex items-center gap-1">
+              <i class="fa-solid fa-cookie text-amber-500"></i> 第二顆紅豆餅
+            </label>
+            <div id="pie2-options" class="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+              <!-- Dynamic Options -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drinks Section (麻古茶坊) -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-red-100 text-red-700 w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm">2</span>
+              <h2 class="font-bold text-slate-800">選擇麻古飲料 (選 1 杯)</h2>
+            </div>
+            <span id="drink-count-badge" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">已選 0/1</span>
+          </div>
+
+          <!-- Category Filter Tabs -->
+          <div id="drink-category-tabs" class="flex gap-1 overflow-x-auto pb-2 mb-3 text-xs custom-scrollbar">
+            <!-- Dynamic Category Buttons -->
+          </div>
+
+          <!-- Drink List -->
+          <div id="drink-options" class="space-y-2 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+            <!-- Dynamic Drink Options -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Current Order Summary Box -->
+    <div class="bg-gradient-to-br from-amber-50 to-orange-50/60 rounded-2xl p-5 border border-amber-200/80 shadow-sm">
+      <h3 class="font-bold text-amber-900 mb-3 flex items-center gap-2 text-base">
+        <i class="fa-solid fa-receipt text-amber-600"></i>
+        個人點餐內容確認
+      </h3>
+      
+      <div class="space-y-2 text-sm text-slate-700">
+        <div class="flex justify-between items-center py-1.5 border-b border-amber-200/60">
+          <span class="text-slate-500">紅豆餅 #1</span>
+          <span id="summary-pie1" class="font-semibold text-slate-800">未選擇</span>
+        </div>
+        <div class="flex justify-between items-center py-1.5 border-b border-amber-200/60">
+          <span class="text-slate-500">紅豆餅 #2</span>
+          <span id="summary-pie2" class="font-semibold text-slate-800">未選擇</span>
+        </div>
+        <div class="flex justify-between items-center py-1.5 border-b border-amber-200/60">
+          <span class="text-slate-500">麻古飲料</span>
+          <span id="summary-drink" class="font-semibold text-slate-800">未選擇</span>
+        </div>
+        <div class="flex justify-between items-center pt-2 font-bold text-base text-amber-950">
+          <span>本次個人總額</span>
+          <span id="summary-total" class="text-xl font-extrabold text-red-600">NT$ 0</span>
+        </div>
+      </div>
+
+      <!-- Submit Block -->
+      <div class="mt-4 pt-3 border-t border-amber-200/80 flex flex-col sm:flex-row gap-2">
+        <input type="text" id="order-person-name" placeholder="請輸入姓名/稱呼 (例如：小明)" class="flex-1 text-sm rounded-xl px-3.5 py-2.5 border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+        <div class="flex gap-2">
+          <button onclick="submitCurrentOrder()" class="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-md active:scale-95 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>加入團購清單</span>
+          </button>
+          <button onclick="resetCurrentSelection()" title="重設個人選擇" class="bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 font-medium px-4 py-2.5 rounded-xl transition active:scale-95">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group Orders List -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+            <i class="fa-solid fa-users text-red-500"></i>
+            團隊點餐總覽清單
+          </h3>
+          <p class="text-xs text-slate-400">填單完成後，系統會自動即時同步至 Google 試算表！</p>
+        </div>
+        <div>
+          <button onclick="clearAllGroupOrders()" class="text-xs text-red-500 hover:text-red-700 font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-lg transition">
+            <i class="fa-solid fa-trash-can mr-1"></i>清空本地清單
+          </button>
+        </div>
+      </div>
+
+      <!-- Sync Status Banner -->
+      <div id="sync-status-banner" class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-700 text-xs font-medium">
+        <i class="fa-solid fa-cloud-check text-base text-emerald-600"></i>
+        <span>已連線至 Google 試算表，每筆訂單將強制自動即時同步。</span>
+      </div>
+
+      <!-- Orders List Container -->
+      <div id="group-orders-list" class="space-y-2">
+        <div id="empty-group-msg" class="text-center py-8 text-slate-400 text-sm">
+          目前尚未有任何訂單，請在上方點餐後點擊「加入團購清單」！
+        </div>
+      </div>
+
+      <!-- Group Summary Statistics Footer -->
+      <div id="group-summary-panel" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+        <div class="font-bold text-slate-700 text-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-pie text-amber-500"></i> 品項數量統計總計
+        </div>
+        <div id="item-counts-breakdown" class="text-xs text-slate-600 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+          <!-- Item count badges -->
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-bold text-slate-800 text-base">
+          <div>全組總訂購人數: <span id="group-count" class="text-red-600">0</span> 人</div>
+          <div>應付總金額: <span id="group-grand-total" class="text-xl font-black text-red-600">NT$ 0</span></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 z-50 pointer-events-none">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toast-msg">訊息提示</span>
+  </div>
+
+  <footer class="bg-slate-100 border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+    用蛋糕做的紅豆餅 × 麻古茶坊 團購點餐工具 &copy; 2026
+  </footer>
+
+  <script>
+    // 固定的 Google Apps Script Web App 部署網址
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBUpkT6pVTOBfBdD5S4eJ6UGjjdzYA8TtAWJTX1nM4BLjLmPNKlaJymFG9Q0TUz6xF0w/exec';
+
+    // 1. Wheel Pie Catalog (用蛋糕做的紅豆餅菜單)
+    const PIE_MENU = [
+      { id: 'p_sesame', name: '養生芝麻', price: 28 },
+      { id: 'p_redbean', name: '紅豆', price: 32 },
+      { id: 'p_custard', name: '卡士達', price: 35 },
+      { id: 'p_taro', name: '大甲芋頭', price: 38 },
+      { id: 'p_tapioca', name: '珍珠卡士達', price: 38 },
+      { id: 'p_chocolate', name: '法芙娜巧克力', price: 45 },
+      { id: 'p_cheese', name: '半熟乳酪', price: 50 },
+      { id: 'p_cheesegg', name: '起司蛋', price: 50 },
+      { id: 'p_sausage', name: '法蘭克福脆腸', price: 50 },
+      { id: 'p_matcha', name: '真濃抹茶', price: 65 },
+    ];
+
+    // 2. MACU Drinks Catalog (麻古茶坊菜單 - 南部價格)
+    const DRINK_MENU = [
+      { id: 'd_jinXuan', category: '原味茶', name: '高山金萱茶', prices: { L: 30, B: 45 } },
+      { id: 'd_green', category: '原味茶', name: '翡翠綠茶', prices: { L: 30, B: 45 } },
+      { id: 'd_ceylon', category: '原味茶', name: '錫蘭紅茶', prices: { L: 30, B: 45 } },
+      { id: 'd_qing', category: '原味茶', name: '文山青茶', prices: { L: 30, B: 45 } },
+      { id: 'd_oldRed', category: '原味茶', name: '古早味紅茶', prices: { L: 30, B: 45 } },
+      { id: 'd_fleeJing', category: '原味茶', name: '粉粿金萱', prices: { L: 40, B: 55 } },
+      { id: 'd_jinXuan2Q', category: '原味茶', name: '金萱雙Q', prices: { L: 40, B: 55 } },
+      { id: 'd_redWulong', category: '原味茶', name: '紅豆烏龍', prices: { L: 35, B: 50 } },
+
+      { id: 'd_milkTea', category: '濃醇系列', name: '絕香奶茶', prices: { L: 50, B: 75 } },
+      { id: 'd_tieMilk', category: '濃醇系列', name: '鐵觀音奶茶', prices: { L: 50, B: 75 } },
+      { id: 'd_bobaMilk', category: '濃醇系列', name: '波霸奶茶', prices: { L: 50, B: 75 } },
+
+      { id: 'd_orangeWulong', category: '鮮果茶飲', name: '橙香紅萱', prices: { L: 65, B: 95 } },
+      { id: 'd_youWulong', category: '鮮果茶飲', name: '柚香紅萱', prices: { L: 60, B: 90 } },
+      { id: 'd_passion2Q', category: '鮮果茶飲', name: '百香雙Q果', prices: { L: 60, B: 80 } },
+      { id: 'd_passionGreen', category: '鮮果茶飲', name: '百香綠茶', prices: { L: 55, B: 75 } },
+      { id: 'd_feicuiOrange', category: '鮮果茶飲', name: '翡翠柳橙', prices: { L: 60, B: 90 } },
+      { id: 'd_honeyLemon', category: '鮮果茶飲', name: '蜂蜜檸檬', prices: { L: 60 } },
+      { id: 'd_youFeicui', category: '鮮果茶飲', name: '柚香翡翠', prices: { L: 55, B: 85 } },
+
+      { id: 'd_fleeLatte', category: '鮮奶系列', name: '粉粿紅茶拿鐵', prices: { L: 65, B: 95 } },
+      { id: 'd_blackLatte', category: '鮮奶系列', name: '紅茶拿鐵', prices: { L: 65, B: 95 } },
+      { id: 'd_tieLatte', category: '鮮奶系列', name: '鐵觀音拿鐵', prices: { L: 65, B: 95 } },
+      { id: 'd_bobaLatte', category: '鮮奶系列', name: '波霸紅茶拿鐵', prices: { L: 65, B: 95 } },
+
+      { id: 'd_cheezJin', category: '芝芝系列', name: '芝芝金萱', prices: { L: 50 } },
+      { id: 'd_cheezJin2Q', category: '芝芝系列', name: '芝芝金萱雙Q', prices: { L: 60 } },
+
+      { id: 'd_buckwheat', category: '寶石系列', name: '蕎麥綠寶石', prices: { L: 40, B: 55 } }
+    ];
+
+    const MAX_BUDGET = 150;
+    let selectedCategory = '全部';
+
+    let currentSelection = {
+      pie1: null,
+      pie2: null,
+      drink: null
+    };
+
+    let groupOrders = [];
+
+    window.onload = function() {
+      renderCategoryTabs();
+      renderMenuOptions();
+      updateUI();
+    };
+
+    function renderCategoryTabs() {
+      const categories = ['全部', '原味茶', '濃醇系列', '鮮果茶飲', '鮮奶系列', '芝芝系列', '寶石系列'];
+      const tabsContainer = document.getElementById('drink-category-tabs');
+      tabsContainer.innerHTML = '';
+
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => {
+          selectedCategory = cat;
+          renderCategoryTabs();
+          renderDrinkOptions();
+          updateUI();
+        };
+        
+        const isSelected = selectedCategory === cat;
+        btn.className = `px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+          isSelected ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        }`;
+        btn.innerText = cat;
+        tabsContainer.appendChild(btn);
+      });
+    }
+
+    function renderMenuOptions() {
+      const p1Container = document.getElementById('pie1-options');
+      const p2Container = document.getElementById('pie2-options');
+
+      p1Container.innerHTML = '';
+      p2Container.innerHTML = '';
+
+      PIE_MENU.forEach(item => {
+        p1Container.appendChild(createPieButton(item, 'pie1'));
+        p2Container.appendChild(createPieButton(item, 'pie2'));
+      });
+
+      renderDrinkOptions();
+    }
+
+    function renderDrinkOptions() {
+      const dContainer = document.getElementById('drink-options');
+      dContainer.innerHTML = '';
+
+      const filteredDrinks = selectedCategory === '全部' 
+        ? DRINK_MENU 
+        : DRINK_MENU.filter(d => d.category === selectedCategory);
+
+      filteredDrinks.forEach(drink => {
+        dContainer.appendChild(createDrinkCard(drink));
+      });
+    }
+
+    function createPieButton(item, slot) {
+      const btn = document.createElement('button');
+      btn.id = `${slot}-${item.id}`;
+      btn.type = 'button';
+      btn.onclick = () => selectPie(slot, item);
+      btn.className = `p-2 rounded-xl border text-left flex flex-col justify-between transition-all duration-150 bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-400`;
+      
+      btn.innerHTML = `
+        <span class="text-xs font-bold truncate">${item.name}</span>
+        <span class="text-[11px] text-slate-500 font-semibold mt-1">NT$ ${item.price}</span>
+      `;
+      return btn;
+    }
+
+    function createDrinkCard(drink) {
+      const card = document.createElement('div');
+      card.id = `drink-card-${drink.id}`;
+      card.className = `p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between transition-all`;
+
+      let sizeButtonsHtml = '';
+      if (drink.prices.L) {
+        sizeButtonsHtml += `
+          <button type="button" id="drink-btn-${drink.id}-L" onclick="selectDrink('${drink.id}', 'L', ${drink.prices.L})" 
+            class="drink-size-btn text-xs font-bold px-2.5 py-1 rounded-lg border transition">
+            L $${drink.prices.L}
+          </button>
+        `;
+      }
+      if (drink.prices.B) {
+        sizeButtonsHtml += `
+          <button type="button" id="drink-btn-${drink.id}-B" onclick="selectDrink('${drink.id}', 'B', ${drink.prices.B})" 
+            class="drink-size-btn text-xs font-bold px-2.5 py-1 rounded-lg border transition">
+            瓶 $${drink.prices.B}
+          </button>
+        `;
+      }
+
+      card.innerHTML = `
+        <div>
+          <div class="text-xs font-bold text-slate-800">${drink.name}</div>
+          <div class="text-[10px] text-slate-400">${drink.category}</div>
+        </div>
+        <div class="flex gap-1.5">
+          ${sizeButtonsHtml}
+        </div>
+      `;
+      return card;
+    }
+
+    function selectPie(slot, item) {
+      if (currentSelection[slot] && currentSelection[slot].id === item.id) {
+        currentSelection[slot] = null;
+      } else {
+        const potentialTotal = calculatePotentialTotal(slot, item);
+        if (potentialTotal > MAX_BUDGET) {
+          showToast(`超過 NT$ ${MAX_BUDGET} 額度限制！`, 'warning');
+          return;
+        }
+        currentSelection[slot] = item;
+      }
+      updateUI();
+    }
+
+    function selectDrink(drinkId, size, price) {
+      const drinkObj = DRINK_MENU.find(d => d.id === drinkId);
+      if (!drinkObj) return;
+
+      const selectedDrinkItem = {
+        id: drinkId,
+        name: `${drinkObj.name} (${size === 'L' ? 'L杯' : '瓶裝'})`,
+        size: size,
+        price: price
+      };
+
+      if (currentSelection.drink && currentSelection.drink.id === drinkId && currentSelection.drink.size === size) {
+        currentSelection.drink = null;
+      } else {
+        const potentialTotal = calculatePotentialTotal('drink', selectedDrinkItem);
+        if (potentialTotal > MAX_BUDGET) {
+          showToast(`超過 NT$ ${MAX_BUDGET} 額度限制！`, 'warning');
+          return;
+        }
+        currentSelection.drink = selectedDrinkItem;
+      }
+      updateUI();
+    }
+
+    function calculatePotentialTotal(targetSlot, newItem) {
+      let p1 = targetSlot === 'pie1' ? newItem : currentSelection.pie1;
+      let p2 = targetSlot === 'pie2' ? newItem : currentSelection.pie2;
+      let d = targetSlot === 'drink' ? newItem : currentSelection.drink;
+
+      return (p1 ? p1.price : 0) + (p2 ? p2.price : 0) + (d ? d.price : 0);
+    }
+
+    function getCurrentTotal() {
+      const p1 = currentSelection.pie1 ? currentSelection.pie1.price : 0;
+      const p2 = currentSelection.pie2 ? currentSelection.pie2.price : 0;
+      const d = currentSelection.drink ? currentSelection.drink.price : 0;
+      return p1 + p2 + d;
+    }
+
+    function updateUI() {
+      const currentTotal = getCurrentTotal();
+      const remaining = MAX_BUDGET - currentTotal;
+
+      document.getElementById('total-price-display').innerText = `NT$ ${currentTotal}`;
+      document.getElementById('remaining-budget').innerText = `NT$ ${remaining}`;
+      document.getElementById('remaining-budget').className = remaining < 20 ? 'text-lg font-bold text-red-600' : 'text-lg font-bold text-emerald-600';
+
+      const percentage = Math.min((currentTotal / MAX_BUDGET) * 100, 100);
+      document.getElementById('budget-progress-bar').style.width = `${percentage}%`;
+
+      if (currentTotal > MAX_BUDGET) {
+        document.getElementById('budget-warning').classList.remove('hidden');
+      } else {
+        document.getElementById('budget-warning').classList.add('hidden');
+      }
+
+      const pieCount = (currentSelection.pie1 ? 1 : 0) + (currentSelection.pie2 ? 1 : 0);
+      document.getElementById('pie-count-badge').innerText = `已選 ${pieCount}/2`;
+      document.getElementById('drink-count-badge').innerText = `已選 ${currentSelection.drink ? 1 : 0}/1`;
+
+      document.getElementById('summary-pie1').innerText = currentSelection.pie1 ? `${currentSelection.pie1.name} ($${currentSelection.pie1.price})` : '未選擇';
+      document.getElementById('summary-pie2').innerText = currentSelection.pie2 ? `${currentSelection.pie2.name} ($${currentSelection.pie2.price})` : '未選擇';
+      document.getElementById('summary-drink').innerText = currentSelection.drink ? `${currentSelection.drink.name} ($${currentSelection.drink.price})` : '未選擇';
+      document.getElementById('summary-total').innerText = `NT$ ${currentTotal}`;
+
+      updatePieButtonsState('pie1');
+      updatePieButtonsState('pie2');
+      updateDrinkButtonsState();
+    }
+
+    function updatePieButtonsState(slot) {
+      PIE_MENU.forEach(item => {
+        const btn = document.getElementById(`${slot}-${item.id}`);
+        if (!btn) return;
+
+        const isSelected = currentSelection[slot] && currentSelection[slot].id === item.id;
+        const potentialTotal = calculatePotentialTotal(slot, item);
+        const disabled = !isSelected && potentialTotal > MAX_BUDGET;
+
+        if (isSelected) {
+          btn.className = `p-2 rounded-xl border text-left flex flex-col justify-between transition-all bg-amber-500 border-amber-600 text-white shadow-sm ring-2 ring-amber-300`;
+        } else if (disabled) {
+          btn.className = `p-2 rounded-xl border text-left flex flex-col justify-between transition-all bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed opacity-50`;
+        } else {
+          btn.className = `p-2 rounded-xl border text-left flex flex-col justify-between transition-all bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-400 hover:bg-amber-50/40`;
+        }
+      });
+    }
+
+    function updateDrinkButtonsState() {
+      DRINK_MENU.forEach(drink => {
+        ['L', 'B'].forEach(size => {
+          const btn = document.getElementById(`drink-btn-${drink.id}-${size}`);
+          if (!btn) return;
+
+          const price = drink.prices[size];
+          if (!price) return;
+
+          const isSelected = currentSelection.drink && currentSelection.drink.id === drink.id && currentSelection.drink.size === size;
+          const dummyDrink = { id: drink.id, name: drink.name, size: size, price: price };
+          const potentialTotal = calculatePotentialTotal('drink', dummyDrink);
+          const disabled = !isSelected && potentialTotal > MAX_BUDGET;
+
+          if (isSelected) {
+            btn.className = `drink-size-btn text-xs font-bold px-2.5 py-1 rounded-lg transition bg-red-600 border-red-600 text-white shadow-sm ring-2 ring-red-300`;
+          } else if (disabled) {
+            btn.className = `drink-size-btn text-xs font-bold px-2.5 py-1 rounded-lg transition bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed opacity-50`;
+          } else {
+            btn.className = `drink-size-btn text-xs font-bold px-2.5 py-1 rounded-lg transition bg-white border-slate-300 text-slate-700 hover:bg-red-50 hover:border-red-400 hover:text-red-600`;
+          }
+        });
+      });
+    }
+
+    function resetCurrentSelection() {
+      currentSelection = { pie1: null, pie2: null, drink: null };
+      document.getElementById('order-person-name').value = '';
+      updateUI();
+    }
+
+    // Add Order to Group Summary List and Auto Force Sync to Google
+    async function submitCurrentOrder() {
+      const total = getCurrentTotal();
+      if (total === 0) {
+        showToast('請至少選擇一個品項！', 'warning');
+        return;
+      }
+
+      const nameInput = document.getElementById('order-person-name');
+      const personName = nameInput.value.trim() || `同事/成員 #${groupOrders.length + 1}`;
+
+      const orderRecord = {
+        id: Date.now(),
+        name: personName,
+        pie1: currentSelection.pie1 ? currentSelection.pie1.name : null,
+        pie2: currentSelection.pie2 ? currentSelection.pie2.name : null,
+        drink: currentSelection.drink ? currentSelection.drink.name : null,
+        total: total
+      };
+
+      // 1. 本地記錄與畫面更新
+      groupOrders.push(orderRecord);
+      renderGroupOrders();
+      resetCurrentSelection();
+      
+      showToast(`已成功點餐！正在自動同步至 Google 試算表...`, 'info');
+
+      // 2. 強制背景發送至 Google 試算表 (POST)
+      try {
+        await sendOrderToGoogle(orderRecord);
+        showToast(`【${personName}】的訂單已自動同步至 Google 試算表！`, 'success');
+      } catch (err) {
+        console.error('Google sync error:', err);
+        showToast(`同步寫入 Google 時發生錯誤，請重試`, 'warning');
+      }
+    }
+
+    // 強制自動同步發送 API
+    async function sendOrderToGoogle(order) {
+      return fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order)
+      });
+    }
+
+    function renderGroupOrders() {
+      const listContainer = document.getElementById('group-orders-list');
+      const summaryPanel = document.getElementById('group-summary-panel');
+
+      if (groupOrders.length === 0) {
+        listContainer.innerHTML = `<div id="empty-group-msg" class="text-center py-8 text-slate-400 text-sm">目前尚未有任何訂單，請在上方點餐後點擊「加入團購清單」！</div>`;
+        summaryPanel.classList.add('hidden');
+        return;
+      }
+
+      summaryPanel.classList.remove('hidden');
+      listContainer.innerHTML = '';
+
+      let grandTotal = 0;
+      const itemCountMap = {};
+
+      groupOrders.forEach((order, index) => {
+        grandTotal += order.total;
+
+        if (order.pie1) itemCountMap[order.pie1] = (itemCountMap[order.pie1] || 0) + 1;
+        if (order.pie2) itemCountMap[order.pie2] = (itemCountMap[order.pie2] || 0) + 1;
+        if (order.drink) itemCountMap[order.drink] = (itemCountMap[order.drink] || 0) + 1;
+
+        const card = document.createElement('div');
+        card.className = 'flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 hover:bg-amber-50/50 rounded-xl border border-slate-200 transition text-xs sm:text-sm gap-2';
+        
+        card.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-md text-xs">${index + 1}</span>
+            <span class="font-bold text-slate-800">${escapeHtml(order.name)}</span>
+          </div>
+          <div class="flex-1 px-0 sm:px-3 text-slate-600 flex flex-wrap gap-x-3 gap-y-0.5">
+            <span>餅: ${[order.pie1, order.pie2].filter(Boolean).join(' + ') || '無'}</span>
+            <span>飲: ${order.drink || '無'}</span>
+          </div>
+          <div class="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+            <span class="font-bold text-red-600">NT$ ${order.total}</span>
+            <button onclick="removeGroupOrder(${order.id})" class="text-slate-400 hover:text-red-500 transition p-1">
+              <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+
+      document.getElementById('group-count').innerText = groupOrders.length;
+      document.getElementById('group-grand-total').innerText = `NT$ ${grandTotal}`;
+
+      const breakdownContainer = document.getElementById('item-counts-breakdown');
+      breakdownContainer.innerHTML = '';
+      Object.keys(itemCountMap).forEach(itemName => {
+        const badge = document.createElement('div');
+        badge.className = 'flex justify-between items-center py-0.5 border-b border-slate-200/60';
+        badge.innerHTML = `<span>${itemName}</span><span class="font-bold text-slate-800">× ${itemCountMap[itemName]}</span>`;
+        breakdownContainer.appendChild(badge);
+      });
+    }
+
+    function removeGroupOrder(id) {
+      groupOrders = groupOrders.filter(o => o.id !== id);
+      renderGroupOrders();
+      showToast('已移除訂單', 'info');
+    }
+
+    function clearAllGroupOrders() {
+      if (groupOrders.length === 0) return;
+      if (confirm('確定要清空整份團購點餐清單嗎？')) {
+        groupOrders = [];
+        renderGroupOrders();
+        showToast('已清空團購清單', 'info');
+      }
+    }
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = msg;
+
+      if (type === 'warning') {
+        toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+      } else if (type === 'info') {
+        toastIcon.className = 'fa-solid fa-circle-info text-blue-400';
+      } else {
+        toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2300);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
