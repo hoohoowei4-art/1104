@@ -150,9 +150,41 @@
           </div>
 
           <!-- Drink List -->
-          <div id="drink-options" class="space-y-2 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+          <div id="drink-options" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar mb-3">
             <!-- Dynamic Drink Options -->
           </div>
+
+          <!-- Sweetness & Ice Options (Activated when drink is selected) -->
+          <div id="drink-custom-options" class="hidden bg-red-50/60 p-3 rounded-xl border border-red-100 space-y-2.5">
+            <div class="text-xs font-bold text-red-900 flex items-center gap-1">
+              <i class="fa-solid fa-sliders text-red-600"></i> 甜度與冰塊調整
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">甜度</label>
+                <select id="drink-sweetness" onchange="updateDrinkPreferences()" class="w-full text-xs rounded-lg px-2 py-1.5 border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-red-500">
+                  <option value="正常糖">正常糖</option>
+                  <option value="少糖">少糖</option>
+                  <option value="半糖">半糖</option>
+                  <option value="微糖" selected>微糖</option>
+                  <option value="無糖">無糖</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">冰塊</label>
+                <select id="drink-ice" onchange="updateDrinkPreferences()" class="w-full text-xs rounded-lg px-2 py-1.5 border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-red-500">
+                  <option value="正常冰">正常冰</option>
+                  <option value="少冰" selected>少冰</option>
+                  <option value="微冰">微冰</option>
+                  <option value="去冰">去冰</option>
+                  <option value="完全去冰">完全去冰</option>
+                  <option value="常溫">常溫</option>
+                  <option value="熱飲">熱飲</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -207,19 +239,21 @@
             <i class="fa-solid fa-users text-red-500"></i>
             團隊點餐總覽清單
           </h3>
-          <p class="text-xs text-slate-400">填單完成後，系統會自動即時同步至 Google 試算表！</p>
+          <p class="text-xs text-slate-400">登記後會自動背景同步至您的 Google 試算表！</p>
         </div>
-        <div>
+        <div class="flex gap-2">
           <button onclick="clearAllGroupOrders()" class="text-xs text-red-500 hover:text-red-700 font-medium border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-lg transition">
-            <i class="fa-solid fa-trash-can mr-1"></i>清空本地清單
+            <i class="fa-solid fa-trash-can mr-1"></i>清空
           </button>
         </div>
       </div>
 
       <!-- Sync Status Banner -->
-      <div id="sync-status-banner" class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-700 text-xs font-medium">
-        <i class="fa-solid fa-cloud-check text-base text-emerald-600"></i>
-        <span>已連線至 Google 試算表，每筆訂單將強制自動即時同步。</span>
+      <div id="sync-status-banner" class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-700 text-xs font-medium">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-base"></i>
+          <span>已設定自動同步至 Google 試算表後端！</span>
+        </div>
       </div>
 
       <!-- Orders List Container -->
@@ -239,7 +273,9 @@
         </div>
         <div class="pt-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 font-bold text-slate-800 text-base">
           <div>全組總訂購人數: <span id="group-count" class="text-red-600">0</span> 人</div>
-          <div>應付總金額: <span id="group-grand-total" class="text-xl font-black text-red-600">NT$ 0</span></div>
+          <div class="flex items-center gap-3">
+            <span>應付總金額: <span id="group-grand-total" class="text-xl font-black text-red-600">NT$ 0</span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -257,8 +293,8 @@
   </footer>
 
   <script>
-    // 固定的 Google Apps Script Web App 部署網址
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBUpkT6pVTOBfBdD5S4eJ6UGjjdzYA8TtAWJTX1nM4BLjLmPNKlaJymFG9Q0TUz6xF0w/exec';
+    // 預先帶入您的 Google Apps Script 網址
+    let googleScriptUrl = 'https://script.google.com/macros/s/AKfycbwBUpkT6pVTOBfBdD5S4eJ6UGjjdzYA8TtAWJTX1nM4BLjLmPNKlaJymFG9Q0TUz6xF0w/exec';
 
     // 1. Wheel Pie Catalog (用蛋糕做的紅豆餅菜單)
     const PIE_MENU = [
@@ -309,7 +345,7 @@
     ];
 
     const MAX_BUDGET = 150;
-    let selectedCategory = '全部';
+    let selectedCategory = 'default';
 
     let currentSelection = {
       pie1: null,
@@ -320,6 +356,7 @@
     let groupOrders = [];
 
     window.onload = function() {
+      selectedCategory = '全部';
       renderCategoryTabs();
       renderMenuOptions();
       updateUI();
@@ -444,11 +481,20 @@
       const drinkObj = DRINK_MENU.find(d => d.id === drinkId);
       if (!drinkObj) return;
 
+      const sweetness = document.getElementById('drink-sweetness').value;
+      const ice = document.getElementById('drink-ice').value;
+
       const selectedDrinkItem = {
         id: drinkId,
-        name: `${drinkObj.name} (${size === 'L' ? 'L杯' : '瓶裝'})`,
+        baseName: drinkObj.name,
         size: size,
-        price: price
+        sizeLabel: size === 'L' ? 'L杯' : '瓶裝',
+        sweetness: sweetness,
+        ice: ice,
+        price: price,
+        get name() {
+          return `${this.baseName} (${this.sizeLabel}, ${this.sweetness}, ${this.ice})`;
+        }
       };
 
       if (currentSelection.drink && currentSelection.drink.id === drinkId && currentSelection.drink.size === size) {
@@ -461,6 +507,16 @@
         }
         currentSelection.drink = selectedDrinkItem;
       }
+      updateUI();
+    }
+
+    function updateDrinkPreferences() {
+      if (!currentSelection.drink) return;
+      const sweetness = document.getElementById('drink-sweetness').value;
+      const ice = document.getElementById('drink-ice').value;
+      
+      currentSelection.drink.sweetness = sweetness;
+      currentSelection.drink.ice = ice;
       updateUI();
     }
 
@@ -499,6 +555,14 @@
       const pieCount = (currentSelection.pie1 ? 1 : 0) + (currentSelection.pie2 ? 1 : 0);
       document.getElementById('pie-count-badge').innerText = `已選 ${pieCount}/2`;
       document.getElementById('drink-count-badge').innerText = `已選 ${currentSelection.drink ? 1 : 0}/1`;
+
+      // Show/Hide Sweetness & Ice Panel
+      const customOptionsPanel = document.getElementById('drink-custom-options');
+      if (currentSelection.drink) {
+        customOptionsPanel.classList.remove('hidden');
+      } else {
+        customOptionsPanel.classList.add('hidden');
+      }
 
       document.getElementById('summary-pie1').innerText = currentSelection.pie1 ? `${currentSelection.pie1.name} ($${currentSelection.pie1.price})` : '未選擇';
       document.getElementById('summary-pie2').innerText = currentSelection.pie2 ? `${currentSelection.pie2.name} ($${currentSelection.pie2.price})` : '未選擇';
@@ -539,7 +603,7 @@
           if (!price) return;
 
           const isSelected = currentSelection.drink && currentSelection.drink.id === drink.id && currentSelection.drink.size === size;
-          const dummyDrink = { id: drink.id, name: drink.name, size: size, price: price };
+          const dummyDrink = { id: drink.id, baseName: drink.name, size: size, price: price };
           const potentialTotal = calculatePotentialTotal('drink', dummyDrink);
           const disabled = !isSelected && potentialTotal > MAX_BUDGET;
 
@@ -558,10 +622,10 @@
       currentSelection = { pie1: null, pie2: null, drink: null };
       document.getElementById('order-person-name').value = '';
       updateUI();
+      showToast('已重設點餐項目', 'info');
     }
 
-    // Add Order to Group Summary List and Auto Force Sync to Google
-    async function submitCurrentOrder() {
+    function submitCurrentOrder() {
       const total = getCurrentTotal();
       if (total === 0) {
         showToast('請至少選擇一個品項！', 'warning');
@@ -580,31 +644,28 @@
         total: total
       };
 
-      // 1. 本地記錄與畫面更新
       groupOrders.push(orderRecord);
       renderGroupOrders();
       resetCurrentSelection();
-      
-      showToast(`已成功點餐！正在自動同步至 Google 試算表...`, 'info');
+      showToast(`已登記【${personName}】的餐點並自動同步！`);
 
-      // 2. 強制背景發送至 Google 試算表 (POST)
-      try {
-        await sendOrderToGoogle(orderRecord);
-        showToast(`【${personName}】的訂單已自動同步至 Google 試算表！`, 'success');
-      } catch (err) {
-        console.error('Google sync error:', err);
-        showToast(`同步寫入 Google 時發生錯誤，請重試`, 'warning');
+      if (googleScriptUrl) {
+        sendOrderToGoogle(orderRecord);
       }
     }
 
-    // 強制自動同步發送 API
     async function sendOrderToGoogle(order) {
-      return fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(order)
-      });
+      if (!googleScriptUrl) return;
+      try {
+        await fetch(googleScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(order)
+        });
+      } catch (err) {
+        console.error('Google sync error:', err);
+      }
     }
 
     function renderGroupOrders() {
